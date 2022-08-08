@@ -62,7 +62,10 @@ class ChigiraCointTest(BaseEstimator):
         # extract the residual. 
         X_Chigira = self.VAR_results_.resid
 
-        estPCA = PCA(n_components=self.n_selected_components)
+        if isinstance(self.PCAModel, PCA):
+            estPCA = self.PCAModel
+        else:
+            estPCA = PCA(n_components=self.n_selected_components)
         pcaY_Chigira = estPCA.fit_transform(X_Chigira)
         
         self.PCAModel_ = estPCA

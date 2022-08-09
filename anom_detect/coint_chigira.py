@@ -22,9 +22,9 @@ class ChigiraCointTest(BaseEstimator):
         X_NSty = check_array(X)
 
         # fit VAR and PCA
-        pcaY_Chigira = self._fit_pca(X_NSty)
+        self._fit_pca(X_NSty)
         # perform the rank tests
-        self._calc_coint(pcaY_Chigira, sig=1)
+        self._calc_coint(self.pcaY_Chigira, sig=1)
         self._IsFitted = True
 
         return self
@@ -34,16 +34,16 @@ class ChigiraCointTest(BaseEstimator):
         X_NSty = check_array(X)
 
         # fit VAR and PCA
-        pcaY_Chigira = self._fit_pca(X_NSty)
+        self._fit_pca(X_NSty)
         # perform the rank tests
-        cointRank = self._calc_coint(pcaY_Chigira, sig=sig)
+        cointRank = self._calc_coint(self.pcaY_Chigira, sig=sig)
         self._IsFitted = True
 
         return cointRank
     
     def test(self, sig=0.05):
         if self._IsFitted == False:
-            raise NotFittedError('Please fit the class first.')
+            raise NotFittedError('Please fit this instance of the ChigiraCointTest class first.')
         #TODO: validate sig
 
         ttRank = len(self.test_results_['p_value'])
@@ -58,9 +58,9 @@ class ChigiraCointTest(BaseEstimator):
     def _fit_pca(self, X_NSty):
         estVAR = VAR(endog=X_NSty)
         # estimate a VAR model with desired specification
-        self.VAR_results_ = estVAR.fit(maxlags=1, trend=self.spec)
+        rstVAR = estVAR.fit(maxlags=1, trend=self.spec)
         # extract the residual. 
-        X_Chigira = self.VAR_results_.resid
+        X_Chigira = rstVAR.resid
 
         if isinstance(self.PCAModel, PCA):
             estPCA = self.PCAModel
@@ -68,10 +68,13 @@ class ChigiraCointTest(BaseEstimator):
             estPCA = PCA(n_components=self.n_selected_components)
         pcaY_Chigira = estPCA.fit_transform(X_Chigira)
         
+        self.VARModel_ = rstVAR
         self.PCAModel_ = estPCA
         self.n_selected_components_ = estPCA.n_components_
+        self.x_chigira_ = X_Chigira
+        self.pcaY_Chigira = pcaY_Chigira
         
-        return pcaY_Chigira
+        #return pcaY_Chigira
 
     def _calc_coint(self, pcaY_Chigira, sig=0.05):
         cointRank = self.PCAModel_.n_components_
@@ -97,5 +100,3 @@ class ChigiraCointTest(BaseEstimator):
 
         self.test_results_ = dictRst
         return cointRank
-
-

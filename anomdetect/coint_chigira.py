@@ -10,12 +10,14 @@ from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
 class ChigiraCointTest(BaseEstimator):
-    def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n') -> None:
+    def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n', adf_max_lag=None) -> None:
         self.n_selected_components = n_selected_components
         self.spec = spec
         self.earlybreak = earlybreak
         self.PCAModel = PCAModel
         self.adf_spec = adf_spec
+        self.adf_max_lag=adf_max_lag
+
         self._IsFitted = False
 
     def fit(self, X):
@@ -58,7 +60,8 @@ class ChigiraCointTest(BaseEstimator):
     def _fit_pca(self, X_NSty):
         estVAR = VAR(endog=X_NSty)
         # estimate a VAR model with desired specification
-        rstVAR = estVAR.fit(maxlags=1, trend=self.spec)
+        # this step is to remove trend and mean of each series
+        rstVAR = estVAR.fit(maxlags=0, trend=self.spec)
         # extract the residual. 
         X_Chigira = rstVAR.resid
 
@@ -80,7 +83,7 @@ class ChigiraCointTest(BaseEstimator):
         cointRank = self.PCAModel_.n_components_
         dictRst = {'rank_r': deque(), 'p_value': deque(), 'adf_lag': deque()}
         for i in range(0, self.PCAModel_.n_components_):
-            rstADF = adfuller(pcaY_Chigira[:,self.PCAModel_.n_components_-i-1], regression=self.adf_spec, maxlag=None, autolag='AIC')
+            rstADF = adfuller(pcaY_Chigira[:,self.PCAModel_.n_components_-i-1], regression=self.adf_spec, maxlag=self.adf_max_lag, autolag='AIC')
             dictRst['rank_r'].append("r <= {0}".format(i))
             dictRst['p_value'].append(rstADF[1])
             dictRst['adf_lag'].append(rstADF[2])

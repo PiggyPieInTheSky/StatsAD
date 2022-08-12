@@ -9,6 +9,8 @@ from sklearn.decomposition import PCA
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
+from .utils._internal import prepare_parameters_VAR
+
 class ChigiraCointTest(BaseEstimator):
     def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n', adf_max_lag=None) -> None:
         self.n_selected_components = n_selected_components
@@ -56,7 +58,6 @@ class ChigiraCointTest(BaseEstimator):
                 break
         return cointRank
 
-
     def _fit_pca(self, X_NSty):
         estVAR = VAR(endog=X_NSty)
         # estimate a VAR model with desired specification
@@ -64,6 +65,8 @@ class ChigiraCointTest(BaseEstimator):
         rstVAR = estVAR.fit(maxlags=0, trend=self.spec)
         # extract the residual. 
         X_Chigira = rstVAR.resid
+        rstVAR = prepare_parameters_VAR(rstVAR)
+        rstVAR.__ct_ar_last_t__ = X_NSty.shape[0]
 
         if isinstance(self.PCAModel, PCA):
             estPCA = self.PCAModel
@@ -76,6 +79,10 @@ class ChigiraCointTest(BaseEstimator):
         self.n_selected_components_ = estPCA.n_components_
         self.x_chigira_ = X_Chigira
         self.pcaY_Chigira = pcaY_Chigira
+
+        # self.VARModel_.__ct_max_lag__ = 0
+        # self.VARModel_.__ct_spec__ = self.VARModel_.trend
+
         
         #return pcaY_Chigira
 

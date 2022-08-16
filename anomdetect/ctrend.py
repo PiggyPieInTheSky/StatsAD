@@ -1,7 +1,3 @@
-# from msilib.schema import Error
-# from tkinter import N
-from collections import deque
-from tracemalloc import start
 import numpy as np
 from collections import deque
 import pandas as pd
@@ -10,7 +6,7 @@ from scipy.interpolate import interp1d
 from sklearn.utils.validation import check_array
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-from sklearn.decomposition import PCA
+#from sklearn.decomposition import PCA
 from statsmodels.stats.stattools import jarque_bera
 from statsmodels.tsa.ar_model import ar_select_order
 from statsmodels.tsa.ar_model import AutoReg
@@ -334,7 +330,12 @@ class CommonTrend(BaseEstimator):
         if getattr(self, 'ChigiraModel_', None) is not None:
             nonsty_means = self.ChigiraModel_.VARModel_.fittedvalues + nonsty_means
         
-        # weight given to the tread values for the common trends
+        # weight given to the tread / mean values for the common trends based on explained variance ratio
+        # Chigira detrends the non-stationary features while PCA demeans them. 
+        # There isn't a unique way of distributing the mean to the common trend and stationary parts of the cointegrated data
+        # here, we simply use the variance ratio. 
+        # Note that the PCA model may not report all components if PCA.n_components is not equal to PCA.n_features.
+        # Thus we need to recalculate the explained variance ratio.
         var_ratio = np.sum(self.PCAModel_.explained_variance_[0:self.n_components_nonsty_]) / np.sum(self.PCAModel_.explained_variance_)
 
         if self.n_components_nonsty_!= 0: # if there is common trend
@@ -350,13 +351,10 @@ class CommonTrend(BaseEstimator):
                 )
             else:
                 Znonsty = Xct_detrended + Xct_trend
-            # nonsty_means_nonsty = np.concatenate([nonsty_means[:,0:self.n_components_nonsty_nonsty_], np.zeros((nonsty_means.shape[0], self.n_features_-self.n_components_nonsty_nonsty_))], axis=1)
-            # Znonsty = self._kasaX_nonsty.dot(self.components_kasa_nonsty_.transpose()) + nonsty_means_nonsty
         else:
-            Znonsty = None
+            Znonsty = 0
 
         Xsty_detrended = self._kasaX_sty[:,0:self.n_components_nonsty_sty_].dot(self.PCAModel_.components_[self.n_components_nonsty_nonsty_:,:])
-        #Xsty_trend = np.concatenate([np.zeros((self._kasaX_sty.shape[0], self.n_components_nonsty_nonsty_)), nonsty_means[:,self.n_components_nonsty_sty_:]], axis=1)
         Xsty_trend = nonsty_means * (1-var_ratio)
         if self.n_features_nonsty > 0: # if stationary features were given
             # pad extra zeros in the columns for the stationary features
@@ -368,6 +366,7 @@ class CommonTrend(BaseEstimator):
         else:
             Zsty = Xsty_detrended + Xsty_trend
 
+        # note that the sum of the two below should recover the original data
         return (Znonsty, Zsty)
 
     def fit_test(self, nonstyX, styX=None, sig=0.05):

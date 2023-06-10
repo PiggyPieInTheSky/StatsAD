@@ -14,7 +14,7 @@ from statsmodels.tsa.vector_ar.var_model import VAR
 from statsmodels.nonparametric.kde import KDEUnivariate
 
 from .utils._internal import prepare_parameters_VAR, forecast_var_one_step_ahead
-from .utils.__oos_predict import __var_oos_predict as var_oos_predict
+from .utils._oos_predict import __var_oos_predict as var_oos_predict
 
 
 #TODO: check PCA whiening effect on predicting original X with principal components

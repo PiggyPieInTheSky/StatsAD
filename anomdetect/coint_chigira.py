@@ -12,6 +12,9 @@ from sklearn.exceptions import NotFittedError
 from .utils._internal import prepare_parameters_VAR
 
 class ChigiraCointTest(BaseEstimator):
+    """
+    Chigira, H. (2008). A test of cointegration rank based on principal component analysis. Applied Economics Letters, 15(9), 693-696.
+    """
     def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n', adf_max_lag=None) -> None:
         self.n_selected_components = n_selected_components
         self.spec = spec

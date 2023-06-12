@@ -146,14 +146,6 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
     if start_step is None:
         start_step = 1
 
-    if lag_data is None: #lagged data is not provided
-        lag_data = var_mdl.endog[-var_mdl.k_ar:]
-        if lag_data.shape[1] != var_mdl.endog.shape[1]:
-            raise ValueError("lag_data has less variables in column (={0}) than those used in estimaiton (={1}). Please do not include deterministic terms (constant, trend).".format(lag_Data.shape[1], vecm_mdl.endog.shape[1]))
-        elif lag_data.shape[0] != var_mdl.k_ar:
-            # not enough lagged rows are given, add from the bottom of the estimation data
-            lag_data = np.concatenate([var_mdl.endog[-(var_mdl.k_ar-lag_data.shape[0]):,:], lag_data], axis=0)
-
     IsConst = 'c' in var_mdl.trend
     IsTrend = 't' in var_mdl.trend
 
@@ -178,6 +170,14 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
         else: # if the user requests prediciton intervals
             # deterministic terms don't have bounds
             return fcst_ptest, fcst_steps, fcst_steps
+
+    if lag_data is None: # lagged data is not provided
+        lag_data = var_mdl.endog[-var_mdl.k_ar:]
+        if lag_data.shape[1] != var_mdl.endog.shape[1]:
+            raise ValueError("lag_data has less variables in column (={0}) than those used in estimaiton (={1}). Please do not include deterministic terms (constant, trend).".format(lag_Data.shape[1], vecm_mdl.endog.shape[1]))
+        elif lag_data.shape[0] != var_mdl.k_ar:
+            # not enough lagged rows are given, add from the bottom of the estimation data
+            lag_data = np.concatenate([var_mdl.endog[-(var_mdl.k_ar-lag_data.shape[0]):,:], lag_data], axis=0)
 
     time_diff = 0 # used to adjust the time trend when the user specifies an arbitrary starting point
     if IsTrend:

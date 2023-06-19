@@ -27,10 +27,11 @@ Furthermore, the number of stationary principal components equals the number of 
 
 Let :math:`\pmb{x}_{t}=[x^1_t, x^2_t, ..., x^l_t ]^\prime` denote a vector of variables from :math:`x^1` to :math:`x^l` for time period :math:`t`, properly demeaned and detrended. 
 Just as Chigira (2008), we use a VAR model with a constant, a time trend and no lagged terms to model out the mean and trend:
+
 .. math::
-\begin{equation*}
-\pmb{y}_t = \mu + \sigma t + \pmb{x}_{t}
-\end{equation*}
+    \begin{equation*}
+        \pmb{y}_t = \mu + \sigma t + \pmb{x}_{t}
+    \end{equation*}
 
 where :math:`\pmb{x}_{t}` is simply the residual of VAR on the original series :math:`\pmb{y}_t`.
 

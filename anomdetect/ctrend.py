@@ -105,8 +105,8 @@ class CommonTrend(BaseEstimator):
         self.kasa_nonsty_loading_ = beta_comp_NSty # common trend loading matrix
         self.kasa_sty_loading_ = beta_Sty # stationary loading matrix
 
-        self._kasaX_nonsty = kasaNSty_factor
-        self._kasaX_sty = kasaSty_factor
+        self._kasa_factor_nonsty = kasaNSty_factor
+        self._kasa_factor_sty = kasaSty_factor
         
         # find control limit for the non-stationary factors
         if self.n_components_nonsty_ > 0:
@@ -209,24 +209,24 @@ class CommonTrend(BaseEstimator):
         
         Parameters
         ==========
-            pcaY:                   an n-by-m 2d numpy array that represents the selected top PCA components. n is number of time periods / data observations. m is the number of selected PCA components. Note, this is the transformed X value if using sklearn.decomposiiton.PCA.
+            pcaY:                   an n-by-m 2d numpy array that represents the PCA scores from the top principal components. n is number of time periods / data observations. m is the number of selected PCA components. Note, this is the transformed X value if using sklearn.decompositon.PCA.
 
-            pca_eigenvec:           an m-by-l 2d numpy array that denotes the PCA eigenvectors (factor loading matrix). m is the number of selected PCA components. l is the total number of original features. Note this is the PCA.component_ attribute if from sklearn.
+            pca_eigenvec:           an m-by-l 2d numpy array that denotes the principal components (aka factor loading matrix). m is the number of selected PCA components. l is the total number of original features. Note this is the PCA.component_ attribute if from sklearn.
 
-            n_pca_sty_components:   an int >0. Number of stationary principal components. This is the r value from Johansen / Chigira type cointegration test.
+            n_pca_sty_components:   an int >0. Number of stationary PCA scores. This is the r value from Johansen / Chigira type cointegration test.
 
             styX:                   an optional 2d numpy array that has extra exogenous stationary time series that can be appended to the stationary part of the results. The number of rows must match that of pcaY.
 
         Return
         ======
             A 4-element tuple with the following elements:
-            beta_comp_NSty:     a 2d numpy array that contains the coefficients applied to the original features to produce the principal components components for the (non-stationary) common trend components
+            beta_comp_NSty:     a 2d numpy array that contains the coefficients applied to the original features to produce the PCA scores for the (non-stationary) common trend components
 
-            beta_Sty:           a 2d numpy array that contains the coefficients applied to the original features to produce the principal components components for the stationary components. If extra stationary features are supplied to styX, the original features are aligned as [I(1) features, styX].
+            beta_Sty:           a 2d numpy array that contains the coefficients applied to the original features to produce the PCA scores for the stationary components. If extra stationary features are supplied to styX, the original features are aligned as [I(1) features, styX].
             
-            kasaNSty_factor:    an n by (m-n_pca_sty_components) 2d numpy array that contains the (non-stationary) principal components for the common trend components. This contains the top m-r principal components where r (=n_pca_sty_components) is the number of cointegration vectors.
+            kasaNSty_factor:    an n by (m-n_pca_sty_components) 2d numpy array that contains the (non-stationary) PCA scores for the common trend components. This contains the top m-r scores where r (=n_pca_sty_components) is the number of cointegration vectors.
             
-            kasaSty_factor:     an n by n_pca_sty_components 2d numpy array that contains the principal components for the stationary components. If styX is supplied, the column layout follows [the stationary PCs, styX].
+            kasaSty_factor:     an n by n_pca_sty_components 2d numpy array that contains the PCA scores for the stationary components. If styX is supplied, the column layout follows [the stationary PCs, styX].
 
             Note: suppose the *detrended* oringal features are X = [nStyX, styX] where nStyX is the I(1) features that generated pcaY. The following should hold: 1) X.dot(beta_comp_NSty) := kasaNSty_factor, and 2) X.dot(beta_Sty) := kasaSty_factor.
 
@@ -280,13 +280,13 @@ class CommonTrend(BaseEstimator):
             ])
         else: # if there isn't any stationary input variables provides
             # find the stationary factors among combined inputs of [pcaY, styX]
-            # this would be the last few principal components
+            # this would be the last few PCA scores
             kasaSty_factor = pcaY[:,-n_pca_sty_components:]
             
             if n_pca_nonsty_components > 0: # if there are non-stationary factors among the cointegrated variables
                 # get the coefficients (\Beta_{\perp}) for the non-stationary factors of the variables
                 beta_comp_NSty = pca_eigenvec[0:n_pca_nonsty_components,:].transpose()
-                # nonstationary factors of the combined [pcaY, styX] input matrix
+                # non-stationary factors of the combined [pcaY, styX] input matrix
                 kasaNSty_factor = pcaY[:,0:n_pca_nonsty_components]
             else:  # if there isn't non-stationary factors among the cointegrated variabels, aka Johansen full rank
                 beta_comp_NSty = 0
@@ -362,7 +362,7 @@ class CommonTrend(BaseEstimator):
         return (mdlVAR, covMatInv, ci_fxn)
 
     def fit_transform(self, nonstyX, styX=None):
-        """Fit the model, then returns the principal components based on Kasa decomposition. 
+        """Fit the model, then returns the PCA scores (aka factors) based on Kasa decomposition. 
 
         Parameters
         ==========
@@ -372,10 +372,10 @@ class CommonTrend(BaseEstimator):
         
         Return
         ======
-        an n by (m+k) 2d numpy array that contains principal components where m is the number of selected PCA components from the I(1) input data and equals the n_selected_components_ attribute. The column layout is as the following: n_components_nonsty_nonsty_ number of principal components for the stochastic common trend, n_components_nonsty_sty_ number of principal components for the stationary components, and n_features_sty number of extra stationary features (if provided).
+        an n by (m+k) 2d numpy array that contains PCA scores where m is the number of selected PCA components from the I(1) input data and equals the n_selected_components_ attribute. The column layout is as the following: n_components_nonsty_nonsty_ number of principal components for the stochastic common trend, n_components_nonsty_sty_ number of principal components for the stationary components, and n_features_sty number of extra stationary features (if provided).
         """
         self.fit(nonstyX=nonstyX, styX=styX)
-        return np.concatenate([self._kasaX_nonsty, self._kasaX_sty], axis=1)
+        return np.concatenate([self._kasa_factor_nonsty, self._kasa_factor_sty], axis=1)
 
     def fit_predict(self, nonstyX: np.ndarray, styX=None):
         """Computes essential components for decomposition and testing, then decomposes I(1) data into stochastic common trend components and stationary components based on Kasa (1992).
@@ -423,14 +423,14 @@ class CommonTrend(BaseEstimator):
         # common trend component ======================
         if self.n_components_nonsty_!= 0: # if there is common trend
             # use the non-stationary principal components to predict the original I(1) features
-            Xct_detrended = self._kasaX_nonsty.dot(self.PCAModel_.components_[0:self.n_components_nonsty_nonsty_,:])
+            Xct_detrended = self._kasa_factor_nonsty.dot(self.PCAModel_.components_[0:self.n_components_nonsty_nonsty_,:])
             # distribute the mean values for the non-stationary (common trend) principal components
             # Xct_trend = nonsty_means * var_ratio
             if self.n_features_nonsty > 0: # if extra stationary features were given
                 # pad extra zeros in the columns for the extra stationary features
                 Znonsty = np.concatenate([
                     Xct_detrended #+ Xct_trend
-                    , np.zeros((self._kasaX_nonsty.shape[0], self.n_features_nonsty))
+                    , np.zeros((self._kasa_factor_nonsty.shape[0], self.n_features_nonsty))
                     ], axis=1
                 )
             else:
@@ -440,14 +440,14 @@ class CommonTrend(BaseEstimator):
 
         # stationary component ======================
         # use stationary PCs to predict the original I(1) features
-        Xsty_detrended = self._kasaX_sty[:,0:self.n_components_nonsty_sty_].dot(self.PCAModel_.components_[self.n_components_nonsty_nonsty_:,:])
+        Xsty_detrended = self._kasa_factor_sty[:,0:self.n_components_nonsty_sty_].dot(self.PCAModel_.components_[self.n_components_nonsty_nonsty_:,:])
         # distribute the mean values for the stationary principal components
         # Xsty_trend = nonsty_means * (1-var_ratio)
         if self.n_features_nonsty > 0: # if extra stationary features were given
             # add the extra stationary features
             Zsty = np.concatenate([
                     Xsty_detrended #+ Xsty_trend
-                    , self._kasaX_sty[:,self.n_components_nonsty_sty_:]
+                    , self._kasa_factor_sty[:,self.n_components_nonsty_sty_:]
                     ], axis=1
                 )
         else:
@@ -491,7 +491,7 @@ class CommonTrend(BaseEstimator):
         }
 
     def transform(self, nonstyX, styX=None, start_step=1):
-        """Transforms data into principal components after the model is fitted / Kasa decomposition.
+        """Transforms data into PCA sccores (aka factors) after the model is fitted / Kasa decomposition.
 
         Parameters
         ==========
@@ -501,7 +501,7 @@ class CommonTrend(BaseEstimator):
         
         Return
         ======
-        an n by (m+k) 2d numpy array that contains principal components where m is the number of selected PCA components from the I(1) input data and equals the n_selected_components_ attribute. The column layout is as the following: n_components_nonsty_nonsty_ number of principal components for the stochastic common trend, n_components_nonsty_sty_ number of principal components for the stationary components, and n_features_sty number of extra stationary features (if provided).
+        an n by (m+k) 2d numpy array that contains PCA scores where m is the number of selected PCA components from the I(1) input data and equals the n_selected_components_ attribute. The column layout is as the following: n_components_nonsty_nonsty_ number of principal components for the stochastic common trend, n_components_nonsty_sty_ number of principal components for the stationary components, and n_features_sty number of extra stationary features (if provided).
         """
         if not self._IsFitted:
             raise NotFittedError('Please fit this instance of the CommonTrend class first.')
@@ -664,7 +664,7 @@ class CommonTrend(BaseEstimator):
 
         # common trend component ======================
         if self.n_components_nonsty_!= 0: # if there is common trend
-            # first dot product calculates the principal components. 2nd dot product uses the principal components to predict the original I(1) features.
+            # first dot product calculates the PCA scores. 2nd dot product uses the scores to predict the original I(1) features (with reduced variance).
             Xct_detrended = augX_detr.dot(self.kasa_nonsty_loading_).dot(self.PCAModel_.components_[0:self.n_components_nonsty_nonsty_,:])
             # distribute the mean values for the non-stationary (common trend) principal components
             # Xct_trend = nonsty_means * var_ratio

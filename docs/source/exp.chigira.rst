@@ -4,40 +4,45 @@ Principal Component Analysis and Cointegration
 This article outlines the relation between Principal Component Anlaysis (PCA) and cointegration based on Chigira (2008), and the basic idea behind Chigira cointegration test. 
 
 Recall that a prerequisite of cointegrated series is that every series has to be integrated of the same order. 
-Let's denote :math:`I(d)` for integration of order :math:`d` (`see here <https://en.wikipedia.org/wiki/Order_of_integration>`_). 
+Let's denote :math:`I(d)` (`see definition here <https://en.wikipedia.org/wiki/Order_of_integration>`_) for integration of order :math:`d`. 
 This means after :math:`d` times of taking difference (i.e. :math:`y_{t} - y_{t-1}`), the series becomes (*weak*) `stationary <https://en.wikipedia.org/wiki/Stationary_process#Weak_or_wide-sense_stationarity>`_. 
-Here we will only explore the case of I(1) series. In this case, cointegration simply says that there exists a linear combination of these integrated series such that the combination is stationary.
+Here we will only explore the case of :math:`I(1)` series. In this case, cointegration simply says that there exists a linear combination of these integrated series such that the combination is stationary.
 
 Further recall that (*linear*) `Principal Component Analysis <https://en.wikipedia.org/wiki/Principal_component_analysis>`_ seeks to find a `unit vector <https://en.wikipedia.org/wiki/Unit_vector>`_ that maximizes the variance after the vector is applied as weights to the original series. 
 What immediately follows are:
+
 - The maximized variance is the eigenvalue from the eigen-decomposition of the variance-covariance matrix of the original data. 
 
-- The eigenvectors are the weights. These vectors may also be known as *factor loadings* in other fields of studies.
+- The resulting eigenvector is the first *principal component*.
 
 - A principal component is the linear combination of the original series with eigenvectors as the weights.
 
 - The 2nd (or 3rd, 4th, ...) largest variance is the eignvalue of the variance-covariance matrix based on the residual data that the previous principal component(s) cannot explain. 
 
-- Because these eigenvectors are `orthonormal <https://en.wikipedia.org/wiki/Orthonormality>`_ (i.e. the dot product is 0 between any two and 1 with  itself), the principal components are orthogonal as the result.
+- Principal components (eigenvectors) are sometimes refered to as *factor loadings* in other fields of studies.
+
+- Principal components are `orthonormal <https://en.wikipedia.org/wiki/Orthonormality>`_, i.e. the dot product is 0 between any two and is 1 with itself.
+
+- The score of a principal component is the linear combination of the original series with the pricinpal component as the weights. We may also refer to a score as a factor. 
 
 
 
-Chigira (2008) proved that if the last few principal components are stationary, the original data are in fact cointegrated, provided each series is I(1). 
-Furthermore, the number of stationary principal components equals the number of cointegration vectors.
+Chigira (2008) proved that if the last few scores are stationary, the original data are in fact cointegrated, provided each series in the data is :math:`I(1)`. 
+Furthermore, the number of stationary factors equals the number of cointegration vectors.
 
-Let :math:`\pmb{x}_{t}=[x^1_t, x^2_t, ..., x^l_t ]^\prime` denote a vector of variables from :math:`x^1` to :math:`x^l` for time period :math:`t`, properly demeaned and detrended. 
-Just as Chigira (2008), we use a VAR model with a constant, a time trend and no lagged terms to model out the mean and trend:
+Let :math:`\pmb{x}_{t}=[x^1_t, x^2_t, ..., x^l_t ]^\prime` denote a vector of variables from :math:`x^1_t` to :math:`x^l_t` for time period :math:`t`, properly demeaned and detrended. 
+Just as Chigira (2008), we use a regression model with a constant, a time trend and no lagged terms to model out the mean and trend:
 
 .. math::
     \begin{equation*}
         \pmb{y}_t = \mu + \sigma t + \pmb{x}_{t}
     \end{equation*}
 
-where :math:`\pmb{x}_{t}` is simply the residual of VAR on the original series :math:`\pmb{y}_t`.
+where :math:`\pmb{x}_{t}` is simply the residual from the above model.
 
-Let :math:`\pmb{B} = [ \pmb{v}_1, ... , \pmb{v}_m]` be an :math:`m` by :math:`l` matrix of PCA eigenvectors, where :math:`m` is the intended number of principal components to keep. Thus :math:`m \le l`. 
+Let :math:`\pmb{B} = [ \pmb{v}_1, ... , \pmb{v}_m]` be an :math:`m` by :math:`l` matrix of principal components, where :math:`l` is the total number of series / variables in the original data; :math:`m` is the intended number of principal components to keep. :math:`m` can be smaller than the number of variables :math:`l` when variable reduction is performed to reduce dimension.
 The columns of :math:`\pmb{B}` are ordered descendingly according to the eigenvalues. 
-The PCA components are defined as:
+The PCA scores are defined as:
 
 .. math::
     \begin{align*}
@@ -50,7 +55,7 @@ The PCA components are defined as:
     \end{align*}
 
 
-Chigira cointegration test then becomes a test for stationary principal components. This implementation of the Chigira test utilizes the following precedure:
+Chigira cointegration test then becomes a test for stationary PCA scores. This implementation of the Chigira test utilizes the following procedure:
 
 1. :math:`i=0`, :math:`r=0`
 
@@ -65,10 +70,13 @@ Chigira cointegration test then becomes a test for stationary principal componen
 The return variable :math:`r` represents the number of cointegrated vectors as in `Johansen cointegration <https://en.wikipedia.org/wiki/Johansen_test>`_ test.
 
 
-As Lin et al. (2019) noted, the benifits of the Chigira cointegration test includes:
+As Lin et al. (2019) noted, the benefits of the Chigira cointegration test include:
 
-- the ability to test a large number of variables even when there is a small number of time periods in data,
+- the ability to test more variables even when there is relatively less time periods in data,
 
 - the structural flexibility compared to Johansen cointegration test since the latter assumes an autoregressive structure of the data.
 
-Below is an example code to test cointegration of a series of data.
+Below is an example of code that tests cointegration of a series of data.
+
+.. note::
+   To be continued...

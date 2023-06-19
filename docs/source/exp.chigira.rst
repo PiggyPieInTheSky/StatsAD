@@ -15,11 +15,9 @@ What immediately follows are:
 
 - The resulting eigenvector is the first *principal component*.
 
-- A principal component is the linear combination of the original series with eigenvectors as the weights.
-
 - The 2nd (or 3rd, 4th, ...) largest variance is the eignvalue of the variance-covariance matrix based on the residual data that the previous principal component(s) cannot explain. 
 
-- Principal components (eigenvectors) are sometimes refered to as *factor loadings* in other fields of studies.
+- Principal components (eigenvectors) are sometimes referred to as *factor loadings* in other fields of studies.
 
 - Principal components are `orthonormal <https://en.wikipedia.org/wiki/Orthonormality>`_, i.e. the dot product is 0 between any two and is 1 with itself.
 
@@ -46,7 +44,7 @@ The PCA scores are defined as:
 
 .. math::
     \begin{align*}
-        \pmb{V}_t &= \pmb{B}^\prime \pmb{x}_{t}\\
+        \pmb{S}_t &= \pmb{B}^\prime \pmb{x}_{t}\\
         &= \begin{bmatrix}
             | & & |\\
             \pmb{v}_1^\prime \pmb{x}_{t}  &... & \pmb{v}_m^\prime \pmb{x}_{t}\\
@@ -57,15 +55,15 @@ The PCA scores are defined as:
 
 Chigira cointegration test then becomes a test for stationary PCA scores. This implementation of the Chigira test utilizes the following procedure:
 
-1. :math:`i=0`, :math:`r=0`
+  1. :math:`i=0`, :math:`r=0`
 
-2. Run the `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_ unit root test on the principal component with :math:`i`-th *smallest* eigenvalue
+  2. Run the `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_ unit root test on :math:`\pmb{v}^\prime_{m-i} \pmb{x}_t` --- the PCA score with :math:`i`-th *smallest* eigenvalue
 
-3. If the test shows unit root, return :math:`r`
+  3. If the test shows unit root, return :math:`r`
 
-4. If the test does not show a unit root, let :math:`r = i + 1`
+  4. If the test does not show a unit root, let :math:`r = i + 1`
 
-5. Unless :math:`i` = :math:`m`, increase :math:`i` by 1
+  5. Unless :math:`i` = :math:`m`, increase :math:`i` by 1
 
 The return variable :math:`r` represents the number of cointegrated vectors as in `Johansen cointegration <https://en.wikipedia.org/wiki/Johansen_test>`_ test.
 

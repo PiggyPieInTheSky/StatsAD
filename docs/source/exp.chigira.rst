@@ -38,18 +38,16 @@ Just as Chigira (2008), we use a regression model with a constant, a time trend 
 
 where :math:`\pmb{x}_{t}` is simply the residual from the above model.
 
-Let :math:`\pmb{B} = [ \pmb{v}_1, ... , \pmb{v}_m]` be an :math:`m` by :math:`l` matrix of principal components, where :math:`l` is the total number of series / variables in the original data; :math:`m` is the intended number of principal components to keep. :math:`m` can be smaller than the number of variables :math:`l` when variable reduction is performed to reduce dimension.
+Let :math:`\pmb{B} = [\pmb{v}_1, ... , \pmb{v}_m]` be an :math:`l` by :math:`m` matrix of principal components, where :math:`l` is the total number of series / variables in the original data; :math:`m` is the intended number of principal components to keep. :math:`m` can be smaller than the number of variables :math:`l` when variable reduction is performed to reduce dimension.
 The columns of :math:`\pmb{B}` are ordered descendingly according to the eigenvalues. 
 The PCA scores are defined as:
 
 .. math::
     \begin{align*}
-        \pmb{S}_t &= \pmb{B}^\prime \pmb{x}_{t}\\
+        \pmb{s}_t &= \pmb{x}_{t}^\prime \pmb{B}\\
         &= \begin{bmatrix}
-            | & & |\\
-            \pmb{v}_1^\prime \pmb{x}_{t}  &... & \pmb{v}_m^\prime \pmb{x}_{t}\\
-            | & & |\\
-        \end{bmatrix}
+            \pmb{x}^\prime_{t} \pmb{v}_1  &... & \pmb{x}^\prime_{t} \pmb{v}_m\\
+        \end{bmatrix}^\prime
     \end{align*}
 
 
@@ -57,7 +55,7 @@ Chigira cointegration test then becomes a test for stationary PCA scores. This i
 
   1. :math:`i=0`, :math:`r=0`
 
-  2. Run the `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_ unit root test on :math:`\pmb{v}^\prime_{m-i} \pmb{x}_t` --- the PCA score with :math:`i`-th *smallest* eigenvalue
+  2. Run the `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_ unit root test on :math:`\pmb{x}^\prime_t \pmb{v}_{m-i}` --- the PCA score with :math:`i`-th *smallest* eigenvalue
 
   3. If the test shows unit root, return :math:`r`
 

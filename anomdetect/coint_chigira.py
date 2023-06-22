@@ -15,13 +15,14 @@ class ChigiraCointTest(BaseEstimator):
     """
     Chigira, H. (2008). A test of cointegration rank based on principal component analysis. Applied Economics Letters, 15(9), 693-696.
     """
-    def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n', adf_max_lag=None) -> None:
+    def __init__(self, n_selected_components=None, spec='c', earlybreak=False, PCAModel=None, adf_spec='n', adf_max_lag=None, adf_autolag='AIC') -> None:
         self.n_selected_components = n_selected_components
         self.spec = spec
         self.earlybreak = earlybreak
         self.PCAModel = PCAModel
         self.adf_spec = adf_spec
         self.adf_max_lag=adf_max_lag
+        self.adf_autolag = adf_autolag
 
         self._IsFitted = False
 
@@ -93,7 +94,7 @@ class ChigiraCointTest(BaseEstimator):
         cointRank = self.PCAModel_.n_components_
         dictRst = {'rank_r': deque(), 'p_value': deque(), 'adf_lag': deque()}
         for i in range(0, self.PCAModel_.n_components_):
-            rstADF = adfuller(pcaY_Chigira[:,self.PCAModel_.n_components_-i-1], regression=self.adf_spec, maxlag=self.adf_max_lag, autolag='AIC')
+            rstADF = adfuller(pcaY_Chigira[:,self.PCAModel_.n_components_-i-1], regression=self.adf_spec, maxlag=self.adf_max_lag, autolag=self.adf_autolag)
             dictRst['rank_r'].append("r <= {0}".format(i))
             dictRst['p_value'].append(rstADF[1])
             dictRst['adf_lag'].append(rstADF[2])

@@ -1,7 +1,8 @@
 Principal Component Analysis and Cointegration
 ==============================================
 
-This article outlines the relation between Principal Component Anlaysis (PCA) and cointegration based on Chigira (2008), and the basic idea behind Chigira cointegration test. 
+This article outlines the relationship between Principal Component Anlaysis (PCA) and cointegration, and the basic idea behind Chigira (2008) cointegration test. 
+It concludes with a python experiment that compares Chigira test with the Johansen test.
 
 Recall that a prerequisite of cointegrated series is that every series has to be integrated of the same order. 
 Let's denote :math:`I(d)` (`see definition here <https://en.wikipedia.org/wiki/Order_of_integration>`_) for integration of order :math:`d`. 
@@ -66,13 +67,45 @@ Chigira cointegration test then becomes a test for stationary PCA scores. This i
 The return variable :math:`r` represents the number of cointegrated vectors as in `Johansen cointegration <https://en.wikipedia.org/wiki/Johansen_test>`_ test.
 
 
-As Lin et al. (2019) noted, the benefits of the Chigira cointegration test include:
+One major benefit of the Chigira cointegration test is its ability to test more variables even when there is relatively less time periods in data. 
+The capacity for more variables relates to not only the application of PCA for dimension reduction, but also that Johansen test's critical values do not cover cases of large variables.
+In fact, the statsmodels' implmentation of the Johansen test  ``vecm.coint_johansen()`` cannot handle more than 12 variables.
 
-- the ability to test more variables even when there is relatively less time periods in data,
+Just as in Chigira, we simulate the following AR series:
 
-- the structural flexibility compared to Johansen cointegration test since the latter assumes an autoregressive structure of the data.
+.. math::
+    (1-L) \pmb{y}_t = \pmb{\alpha} \pmb{\beta}^\prime \pmb{y}_{t-1} + \pmb{\varepsilon}_t
 
-Below is an example of code that tests cointegration of a series of data.
+where :math:`L` denotes the lag operator such that :math:`L \pmb{y}_t = \pmb{y}_{t-1}`; 
+:math:`\pmb{y}_t := [y^1_t, ..., y^m_t]^\prime` represents a vector of random variables; 
+:math:`\pmb{\alpha}` and :math:`\pmb{\beta}` are :math:`m` by 1 vectors of coefficients; 
+and finally :math:`\pmb{\varepsilon}_t` is the error term.
+It should be noted that the rank of the coefficient matrix :math:`\pmb{\alpha} \pmb{\beta}^\prime` equals the real number of cointegration vectors.
+
+In the first experiment, we set 
+
+.. math::
+    \begin{align*}
+        \pmb{\alpha} &= [-1, 0]^\prime\\
+        \pmb{\beta} &= [0.4, 0.1]^\prime\\
+    \end{align*}
+
+and the error term 
+
+.. math::
+    \begin{align*}
+        \pmb{\varepsilon}_t = 0.5 \pmb{u}_{t-1} + \pmb{u}_t\\
+        \pmb{u}_t \sim \mathcal{N}(\pmb{0}, \pmb{I}_2)
+    \end{align*}
+    
+where :math:`\mathcal{N}` denotes the multivariate normal distribution and :math:`\pmb{I}_2` is the 2 by 2 identity matrix. 
+
+>>> import numpy as np
+>>> from scipy.stats import multivariate_normal
+>>> import matplotlib.pyplot as plt
+>>> import pandas as pd
+>>> from statsmodels.tsa.vector_ar.vecm import coint_johansen
+>>> from anomdetect import ChigiraCointTest
 
 .. note::
    To be continued...

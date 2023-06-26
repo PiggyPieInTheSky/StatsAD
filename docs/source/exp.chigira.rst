@@ -2,7 +2,7 @@ Principal Component Analysis and Cointegration
 ==============================================
 
 This article outlines the relationship between Principal Component Anlaysis (PCA) and cointegration, and the basic idea behind Chigira (2008) cointegration test. 
-It concludes with a python experiment that compares Chigira test with the Johansen test.
+It concludes with a Python simulation experiment that compares Chigira test with the Johansen test.
 
 Recall that a prerequisite of cointegrated series is that every series has to be integrated of the same order. 
 Let's denote :math:`I(d)` (`see definition here <https://en.wikipedia.org/wiki/Order_of_integration>`_) for integration of order :math:`d`. 
@@ -78,8 +78,8 @@ Just as in Chigira, we simulate the following AR series:
 
 where :math:`L` denotes the lag operator such that :math:`L \pmb{y}_t = \pmb{y}_{t-1}`; 
 :math:`\pmb{y}_t := [y^1_t, ..., y^m_t]^\prime` represents a vector of random variables; 
-:math:`\pmb{\alpha}` and :math:`\pmb{\beta}` are :math:`m` by 1 vectors of coefficients; 
-and finally :math:`\pmb{\varepsilon}_t` is the error term.
+:math:`\pmb{\alpha}` and :math:`\pmb{\beta}` are :math:`m` by :math:`r` vectors of coefficients; 
+and finally :math:`\pmb{\varepsilon}_t:= [\varepsilon^1_t, ..., \varepsilon^m_t]^\prime` is the error term.
 It should be noted that the rank of the coefficient matrix :math:`\pmb{\alpha} \pmb{\beta}^\prime` equals the real number of cointegration vectors.
 
 In the first experiment, we set 
@@ -100,12 +100,99 @@ and the error term
     
 where :math:`\mathcal{N}` denotes the multivariate normal distribution and :math:`\pmb{I}_2` is the 2 by 2 identity matrix. 
 
+Based on this setup, the error term :math:`\pmb{\varepsilon}_t` is normally distributed with mean 0 and variance of 1.25 for each element in :math:`\pmb{\varepsilon}_t`. 
+For any periods :math:`t` and :math:`s` that are only 1 period apart (i.e. :math:`|t-s|=1`), :math:`\pmb{\varepsilon}_t` and :math:`\pmb{\varepsilon}_s` are correlated. 
+If :math:`t` and :math:`s` are more than 1 period apart, :math:`\pmb{\varepsilon}_t` and :math:`\pmb{\varepsilon}_s` are independent. 
+
+The system of equations amounts to the following:
+
+.. math::
+    \begin{align*}
+        \Delta y^1_t &= -0.4 y^1_{t-1} - 0.1 y^2_{t-1} + \varepsilon^1_t\\
+        \Delta y^2_t &= \varepsilon^2_t
+    \end{align*}
+
+where :math:`\Delta y^i_t := y^i_t - y^i_{t-1}` for :math:`i=1,2`. 
+It can be seen from the above that the two series are :math:`I(1)` and meet the prerequisite of cointegration. 
+In fact, the series should be co-integrated with 1 cointegration vector given that the rank of :math:`\pmb{\alpha} \pmb{\beta}^\prime` is 1.
+
+We will now demonstratet the code to run Chigira cointegration test, then compare the results with Johansen. 
+
+>>> # import packages
 >>> import numpy as np
 >>> from scipy.stats import multivariate_normal
 >>> import matplotlib.pyplot as plt
 >>> import pandas as pd
 >>> from statsmodels.tsa.vector_ar.vecm import coint_johansen
 >>> from anomdetect import ChigiraCointTest
+
+
+
+Define constants and coefficients:
+
+>>> # set coefficients for y_t
+>>> alpha = np.array([[-1],[0]])
+>>> beta_trans = np.array([[0.4, 0.1]])
+>>> ar_coeff = alpha.dot(beta_trans)
+>>> coeff_trans = ar_coeff.T+np.identity(2)
+>>> coeff_rnk = np.linalg.matrix_rank(ar_coeff) # expect the rank to be 1
+
+Build up the simulated data:
+
+>>> # create a multivariate normal distribution object
+>>> nrv = multivariate_normal(mean=[0,0], cov=np.identity(2), seed=100)
+>>> # draw random error. need extra one for the first epsilon
+>>> # burn off the first 100 numbers so the series don't all start at the same point
+>>> u_t = nrv.rvs(size=series_len[-1]+101)
+>>> eps_t = 0.5*u_t[:-1,:] + u_t[1:,:]
+>>> # build the y series
+>>> y_prev = np.array([[0, 0]]) # y_0 is zero
+>>> y_t = np.zeros([eps_t.shape[0],2])
+>>> for t in range(eps_t.shape[0]):
+>>>     y_prev = y_t[[t],:] = y_prev.dot(coeff_trans) + eps_t[t]
+>>> y_t = y_t[100:,]
+
+This would give us two series that look like this 
+
+>>> plt.plot(y_t)
+
+.. image:: ./img/chigira_exp1_two_series.png
+
+Run the Chigira test:
+
+>>> chigira_test = ChigiraCointTest(spec='c')
+>>> chigira_test.fit_test(y_t, sig=0.01) # set significance level at 1%
+>>> print(chi_coint)
+... 1
+
+You can also see the details of the test results in ``chigira_test.test_results_``
+The Johansen test also gives us the correct cointegration result:
+
+>>> jo_rst = coint_johansen(y_t[:crnt_len], det_order=0, k_ar_diff=5)
+>>> for i in range(2):
+>>>     if jo_rst.max_eig_stat[i] < jo_rst.max_eig_stat_crit_vals[i, 2]:
+>>>         break
+>>>     n_coint += 1 # tally the number of cointegration vectors
+... 1
+
+We ran this 10,000 times and looked at different series length. 
+The number of correct test outcomes are shown below:
+
+=== ======== =======
+T   Johansen Chigira
+=== ======== =======
+30	1116	 5249
+50	2320	 6875
+100	3550	 8436
+200	7964	 8859
+400	8977	 8968
+=== ======== =======
+
+T in the above table is the length of the series.
+The expected number of correct test outcomes is 9900 for the 1% significance level we used in the test.
+Although none of the tests get to this number, both tests are approaching the correct number as the number of time periods increases. 
+In fact, for long series, the two tests are similar.
+However, Chigira test does better than Johansen in shorter time series.
 
 .. note::
    To be continued...

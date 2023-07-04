@@ -116,7 +116,7 @@ where :math:`\Delta y^i_t := y^i_t - y^i_{t-1}` for :math:`i=1,2`.
 It can be seen from the above that the two series are :math:`I(1)` and meet the prerequisite of cointegration. 
 In fact, the series should be co-integrated with 1 cointegration vector given that the rank of :math:`\pmb{\alpha} \pmb{\beta}^\prime` is 1.
 
-We will now demonstratet the code to run Chigira cointegration test, then compare the results with Johansen. 
+We will now demonstrate the code to run Chigira cointegration test, and compare the results with Johansen. 
 
 >>> # import packages
 >>> import numpy as np
@@ -125,8 +125,6 @@ We will now demonstratet the code to run Chigira cointegration test, then compar
 >>> import pandas as pd
 >>> from statsmodels.tsa.vector_ar.vecm import coint_johansen
 >>> from anomdetect import ChigiraCointTest
-
-
 
 Define constants and coefficients:
 
@@ -165,7 +163,7 @@ Run the Chigira test:
 >>> print(chi_coint)
 ... 1
 
-You can also see the details of the test results in ``chigira_test.test_results_``
+You can also see the details of the test results in ``chigira_test.test_results_``.
 The Johansen test also gives us the correct cointegration result:
 
 >>> jo_rst = coint_johansen(y_t[:crnt_len], det_order=0, k_ar_diff=5)

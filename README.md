@@ -1,4 +1,4 @@
-# AnomDetect
+# StatsAD
 
 This is a work-in-progress that implements a set of statistical methods for fault-monitoring / anomaly-detection from a body of process-control literatures. The current scope of the project is limited to Principal Component Analysis (PCA) based anomaly detection methods. This may change as I progress along with the project.
 

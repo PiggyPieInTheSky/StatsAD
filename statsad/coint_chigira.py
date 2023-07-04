@@ -194,6 +194,7 @@ class ChigiraCointTest(BaseEstimator):
                 dictRst[crntKey] = list(dictRst[crntKey])
 
         self.test_results_ = dictRst
+        self.coint_rank_ = cointRank
         return cointRank
 
     def _ar_lag_sel(self, y_t, sig=0.05):

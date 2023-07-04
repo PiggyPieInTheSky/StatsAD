@@ -51,6 +51,11 @@ dtVarDict = dtVarDict[['var', 'group', 'transformation', 'source']].sort_values(
 # move columns in the same order as they appear in dtVarDict
 dtMacro = dtMacro[['date']+dtVarDict['var'].values.tolist()]
 
+# pfile = pd.HDFStore('examples/data/macro.dt', 'w')
+# pfile.put('dtMacro', dtMacro)
+# pfile.put('dtVarDict', dtVarDict[['var', 'group', 'transformation', 'source']])
+# pfile.close()
+
 with open('examples/data/macro.pkl', 'wb') as hMacroFile:
     pickle.dump([dtMacro, dtVarDict[['var', 'group', 'transformation', 'source']]], file=hMacroFile)
 

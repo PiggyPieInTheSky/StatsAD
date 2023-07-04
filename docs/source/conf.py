@@ -13,10 +13,10 @@ import os
 main_folder = pathlib.Path(__file__).parents[2].resolve().as_posix()
 sys.path.insert(0, main_folder)
 # load the __version__ attribute
-exec(open(os.path.join(main_folder, 'anomdetect', 'version.py')).read())
+exec(open(os.path.join(main_folder, 'statsad', 'version.py')).read())
 
 
-project = 'AnomDetect'
+project = 'StatsAD'
 copyright = '2023, PiggyPieInTheSky'
 author = 'PiggyPieInTheSky'
 release = __version__

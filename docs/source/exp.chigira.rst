@@ -56,7 +56,7 @@ Chigira cointegration test then becomes a test for stationary PCA scores. This i
 
   1. :math:`i=0`, :math:`r=0`
 
-  2. Run the `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_ unit root test on :math:`\pmb{x}^\prime_t \pmb{v}_{m-i}` --- the PCA score with :math:`i`-th *smallest* eigenvalue
+  2. Run a unit root test (either `Phillips-Perron <https://en.wikipedia.org/wiki/Phillips%E2%80%93Perron_test>`_ or `Dickey-Fuller <https://en.wikipedia.org/wiki/Dickey%E2%80%93Fuller_test>`_) on :math:`\pmb{x}^\prime_t \pmb{v}_{m-i}` --- the PCA score with :math:`i`-th *smallest* eigenvalue
 
   3. If the test shows unit root, return :math:`r`
 
@@ -124,7 +124,7 @@ We will now demonstrate the code to run Chigira cointegration test, and compare 
 >>> import matplotlib.pyplot as plt
 >>> import pandas as pd
 >>> from statsmodels.tsa.vector_ar.vecm import coint_johansen
->>> from anomdetect import ChigiraCointTest
+>>> from statsad import ChigiraCointTest
 
 Define constants and coefficients:
 
@@ -150,7 +150,7 @@ Build up the simulated data:
 >>>     y_prev = y_t[[t],:] = y_prev.dot(coeff_trans) + eps_t[t]
 >>> y_t = y_t[100:,]
 
-This would give us two series that look like this 
+This would give us two series that look something like this 
 
 >>> plt.plot(y_t)
 
@@ -179,18 +179,27 @@ The number of correct test outcomes are shown below:
 === ======== =======
 T   Johansen Chigira
 === ======== =======
-30	1116	 5249
-50	2320	 6875
-100	3550	 8436
-200	7964	 8859
-400	8977	 8968
+30	1116	 2501
+50	2320	 4531
+100	3550	 9377
+200	7964	 9264
+400	8977	 9179
 === ======== =======
 
 T in the above table is the length of the series.
 The expected number of correct test outcomes is 9900 for the 1% significance level we used in the test.
 Although none of the tests get to this number, both tests are approaching the correct number as the number of time periods increases. 
-In fact, for long series, the two tests are similar.
-However, Chigira test does better than Johansen in shorter time series.
+The Chigira test shows advantages than the Johansen test in two aspects: 
+  
+  1. The Chigira test has more power in every series length that is tested here
+  2. The Chigira test can be more accurate for shorter time series
+
+However, we may also see that the test accuracy deteriorates as the time series get longer. 
+This is one disadvantage of the Chigira test. 
+In a separate example that involves more variables, we will see that when time series are similar, some variables may be explained by other variables. 
+This spurious result essentially reduced the unique dimensionality of the original variable space.
+Since some variables can explain others, the vectors that explains other variables are mixed up with cointegration vectors.
+The end result is that Chigira test may report higher cointegration vectors when variables are too similar.
 
 .. note::
    To be continued...

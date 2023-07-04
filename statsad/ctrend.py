@@ -491,7 +491,7 @@ class CommonTrend(BaseEstimator):
         }
 
     def transform(self, nonstyX, styX=None, start_step=1):
-        """Transforms data into PCA sccores (aka factors) after the model is fitted / Kasa decomposition.
+        """Transforms data into PCA sccores (aka factors) after the model is fitted.
 
         Parameters
         ==========

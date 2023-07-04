@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 
-from typing import Type
+from typing import Optional
 
 from .utils._internal import prepare_parameters_VAR
 
@@ -47,13 +47,13 @@ class ChigiraCointTest(BaseEstimator):
     [*] Chigira, H. (2008). A test of cointegration rank based on principal component analysis. Applied Economics Letters, 15(9), 693-696.
     """
     def __init__(self
-        , n_selected_components: None|int = None
+        , n_selected_components:Optional[int] = None
         , spec:str='c'
         , earlybreak:bool=False
-        , PCAModel:PCA|None=None
-        , unit_root_test:str='pp', urt_spec:str='n', urt_lags:int|None=None
+        , PCAModel:Optional[PCA]=None
+        , unit_root_test:str='pp', urt_spec:str='n', urt_lags:Optional[int]=None
         , phillips_perron_test_type:str='tau'
-        , adf_autolag:str|None='AIC', adf_no_ac:bool=False, adf_no_ac_lag_len:int=4
+        , adf_autolag:Optional[str]='AIC', adf_no_ac:bool=False, adf_no_ac_lag_len:int=4
     ):
         self.n_selected_components = n_selected_components
         self.spec = spec

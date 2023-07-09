@@ -1,5 +1,4 @@
 import numpy as np
-# from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.vector_ar.vecm import VECM
 from statsmodels.tsa.vector_ar.var_model import VAR
@@ -13,13 +12,13 @@ def __vecm_oos_predict(vecm_mdl, lag_data=None, start_step=None, fcst_steps=1, p
 
         lag_data:   2d numpy array. # of cols = # of endog vars in VAR model. If not enough rows are provided, the function automatically adds rows form the bottom of the estimation data
 
-        start_Step: int, >=1. starting point of the first forecast in the output. 1 means the 1st forecast period after the end of estimaiton data.
+        start_Step: int, >=1. starting point of the first forecast in the output. 1 means the 1st forecast period after the end of estimation data.
 
         fcst_steps: int, >=1. number of forecast periods
 
-        pred_itvl_sig:  sig lvl of the prediciton interval. If None or 0, no preidction interval is returned
+        pred_itvl_sig:  sig lvl of the prediction interval. If None or 0, no prediction interval is returned
 
-        itvl_shift:     int, >=0. The default margin of the error for the prediciton interval (when itvl_shift==0) starts at the period right after estimaiton data (period 1) and ends at the end of forecast (period = fcst_steps). This assumes any periods before start_step are realized and have no uncertainty. When itvl_shift > 0, the maring of error comes from those for periods from itvl_shift+1 to itvl_shift+fcst_steps.
+        itvl_shift:     int, >=0. The default margin of the error for the prediction interval (when itvl_shift==0) starts at the period right after estimation data (period 1) and ends at the end of forecast (period = fcst_steps). This assumes any periods before start_step are realized and have no uncertainty. When itvl_shift > 0, the margin of error comes from those for periods from itvl_shift+1 to itvl_shift+fcst_steps.
 
     Return
     ======
@@ -34,20 +33,20 @@ def __vecm_oos_predict(vecm_mdl, lag_data=None, start_step=None, fcst_steps=1, p
 
     if lag_data is None: #lagged data is not provided
         # use the last few observations form the estimation data
-        # we assume the forecast starts at one period after the esitmation data
+        # we assume the forecast starts at one period after the estimation data
         lag_data = vecm_mdl.model.endog[-vecm_mdl.k_ar:]
         if start_step is not None and start_step < 1:
             raise ValueError(f"start_step cannot be less than 1. {start_step} is given.")
     elif lag_data.shape[1] != vecm_mdl.model.endog.shape[1]:
-        raise ValueError("lag_data has less variables in column (={0}) than those used in estimaiton (={1}). Please do not include deterministic terms (constant, trend).".format(lag_data.shape[1], vecm_mdl.endog.shape[1]))
+        raise ValueError("lag_data has less variables in column (={0}) than those used in estimation (={1}). Please do not include deterministic terms (constant, trend).".format(lag_data.shape[1], vecm_mdl.endog.shape[1]))
     elif lag_data.shape[0] != vecm_mdl.k_var:
         # not enough lagged rows are given, add from the bottom of estiamtion data
         lag_data = np.concatenate([vecm_mdl.model.endog[-(vecm_mdl.k_ar-lag_data.shape[0]):,:], lag_data], axis=0)
 
-    IsCointConst = 'ci' in vecm_mdl.deterministic # constant term incointegration relation
+    IsCointConst = 'ci' in vecm_mdl.deterministic # constant term in cointegration relation
     IsCointTrend = 'li' in vecm_mdl.deterministic # time trend in cointegration relation
     IsUnresConst = 'co' in vecm_mdl.deterministic # constant term outside of cointegration relation
-    IsUnresTrend = 'lo' in vecm_mdl.deterministic # time trend outside of cointegration relaiton
+    IsUnresTrend = 'lo' in vecm_mdl.deterministic # time trend outside of cointegration relation
 
     # initialize the forecast resturn structure
     ecm_fcst = np.zeros((fcst_steps, vecm_mdl.model.endog.shape[1]))
@@ -68,9 +67,9 @@ def __vecm_oos_predict(vecm_mdl, lag_data=None, start_step=None, fcst_steps=1, p
         # compute the AR terms. since this is ECM, there is at least one lag from VAR's perspective
         # the var_rep property:
         #   1. does not contain deterministic terms
-        #   2. for lag 1: \alpha \times \beta\prime + indentiy (to move the y_{t-1} in \Delta y_t on the LHS to the RHS) + the coefficient for \Delta y{t-1} in \Gamma.
+        #   2. for lag 1: \alpha \times \beta\prime + identity (to move the y_{t-1} in \Delta y_t on the LHS to the RHS) + the coefficient for \Delta y{t-1} in \Gamma.
         #   3. for lag = i \in [2, k_ar): coefficient for the lag in \Gamma (for y_{t-i} \Delta y_{t-i}) - coefficient for the previous lag (for y{t-i} from \Delta y_{t-i+1})
-        #   4. for lag = k_ar: coeffcient of the last lag in \Gamma
+        #   4. for lag = k_ar: coefficient of the last lag in \Gamma
 
         ecm_det_term = None
         if IsCointConst or IsCointTrend: # if deterministic term(s) within cointegration relation
@@ -107,7 +106,7 @@ def __vecm_oos_predict(vecm_mdl, lag_data=None, start_step=None, fcst_steps=1, p
     # look for forecast_interval at the top level, not the one within a class
     itvlRaw = vecm_mdl.predict(steps=fcst_steps+itvl_shift, alpha=pred_itvl_sig)
 
-    # recover the "maring of error" fron the bounds and add th enew point estimates
+    # recover the "maring of error" fron the bounds and add the new point estimates
     fcst_lower = itvlRaw[1][itvl_shift:,] - itvlRaw[0][itvl_shift:,] + ecm_fcst
     fcst_upper = itvlRaw[2][itvl_shift:,] - itvlRaw[0][itvl_shift:,] + ecm_fcst
 
@@ -122,13 +121,13 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
 
         lag_data:   2d numpy array. # of cols = # of endog vars in VAR model. If not enough rows are provided, the function automatically adds rows form the bottom of the estimation data
 
-        start_step: int. starting point of the first forecast in the output. 1 means the 1st forecast period after the end of estimaiton data.
+        start_step: int. starting point of the first forecast in the output. 1 means the 1st forecast period after the end of estimation data.
 
         fcst_steps: int, >=1. number of forecast periods
 
-        pred_itvl_sig:  sig lvl of the prediciton interval. If None or 0, no preidction interval is returned
+        pred_itvl_sig:  sig lvl of the prediction interval. If None or 0, no prediction interval is returned
 
-        itvl_shift:     int, >=0. The default margin of the error for the prediciton interval (when itvl_shift==0) starts at the period right after estimaiton data (period 1) and ends at the end of forecast (period = fcst_steps). This assumes any periods before start_step are realized and have no uncertainty. When itvl_shift > 0, the maring of error comes from those for periods from itvl_shift+1 to itvl_shift+fcst_steps.
+        itvl_shift:     int, >=0. The default margin of the error for the prediction interval (when itvl_shift==0) starts at the period right after estimation data (period 1) and ends at the end of forecast (period = fcst_steps). This assumes any periods before start_step are realized and have no uncertainty. When itvl_shift > 0, the maring of error comes from those for periods from itvl_shift+1 to itvl_shift+fcst_steps.
 
     Return
     ======
@@ -153,8 +152,8 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
     if var_mdl.k_ar == 0:
         # move the trend value to reflect user's adjustment
         start_trend_value = var_mdl.endog.shape[0] + start_step
-        if IsConst and IsTrend: # if consttant and trend terms are in the model
-            # build a matrix of 1s in first column and progress trend vlaues in the 2nd
+        if IsConst and IsTrend: # if constant and trend terms are in the model
+            # build a matrix of 1s in first column and progress trend values in the 2nd
             x_var = np.concatenate([np.ones((fcst_steps,1)), np.arange(start_trend_value, start_trend_value+fcst_steps, step=1).reshape((-1,1))], axis=1)
             # build the forecast X*beta
             fcst_ptest = x_var.dot(var_mdl.params)
@@ -167,14 +166,14 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
         #return results
         if pred_itvl_sig == 0: #if the user does not request prediction intervals
             return fcst_ptest
-        else: # if the user requests prediciton intervals
+        else: # if the user requests prediction intervals
             # deterministic terms don't have bounds
             return fcst_ptest, fcst_steps, fcst_steps
 
     if lag_data is None: # lagged data is not provided
         lag_data = var_mdl.endog[-var_mdl.k_ar:]
         if lag_data.shape[1] != var_mdl.endog.shape[1]:
-            raise ValueError("lag_data has less variables in column (={0}) than those used in estimaiton (={1}). Please do not include deterministic terms (constant, trend).".format(lag_Data.shape[1], vecm_mdl.endog.shape[1]))
+            raise ValueError("lag_data has less variables in column (={0}) than those used in estimation (={1}). Please do not include deterministic terms (constant, trend).".format(lag_Data.shape[1], vecm_mdl.endog.shape[1]))
         elif lag_data.shape[0] != var_mdl.k_ar:
             # not enough lagged rows are given, add from the bottom of the estimation data
             lag_data = np.concatenate([var_mdl.endog[-(var_mdl.k_ar-lag_data.shape[0]):,:], lag_data], axis=0)
@@ -183,7 +182,7 @@ def __var_oos_predict(var_mdl, lag_data=None, start_step=1, fcst_steps=1, pred_i
     if IsTrend:
         time_diff = var_mdl.params.loc['trend'].reshape((-1,1)) * (start_step - 1)
 
-    # return point estimate if prediciton interval is not requested
+    # return point estimate if prediction interval is not requested
     if pred_itvl_sig == 0:
         return var_mdl.forecast(lag_data, steps=fcst_steps) + time_diff
 

@@ -7,10 +7,14 @@ class TestBaseClass(ABC):
     def fit(self, X1, X2=None):
         pass
     @abstractmethod
-    def test(self, X1, X2=None, sig:int=0.05):
+    def test(self, X1, X2=None, sig:float=0.05):
         pass
     @abstractmethod
-    def fit_test(self, X1, X2=None, sig:int=0.05):
+    def fit_test(self, X1, X2=None, sig:float=0.05):
+        pass
+
+    @abstractmethod
+    def _asymp_ci_fxn(self, sig:float=0.05):
         pass
 
 class TransformerBasClass(ABC):
